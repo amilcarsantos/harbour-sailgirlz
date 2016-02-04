@@ -2,6 +2,10 @@
 
 .import Sailfish.Silica 1.0 as Sl
 
+var PMS_COLOR = '#5d00e5';
+var MN_COLOR = '#e60003';
+var OV_COLOR = '#28a928';
+
 var MN_DAYS = 5;
 
 var PMS_OFF = 4;
@@ -10,12 +14,17 @@ var OV_DAYS = 7;
 var OV_DAYS_SPAN = 4;
 var OV_DAYS_BEFORE = 14;
 
-function daysInCycle(cycle, day1ms, curDay) {
-	if (curDay === undefined) {
-		curDay = new Date();
-		curDay.setUTCHours(0, 0, 0, 0);
+function todayMS() {
+	var now = new Date();
+	return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+}
+
+function daysInCycle(cycle, day1ms, curDayMS) {
+	if (curDayMS === undefined) {
+		curDayMS = todayMS();
 	}
-	var d = (curDay.getTime() - day1ms) / 86400000 % cycle | 0;
+//	console.log((curDayMS - day1ms) / 86400000, new Date(curDayMS))
+	var d = (curDayMS - day1ms) / 86400000 % cycle | 0;
 	if (d < 0) {
 		d = cycle + d
 	}
@@ -51,7 +60,7 @@ function formatDays(d) {
 	if (d === 1) {
 		return qsTr("tomorrow");
 	}
-	var dt = new Date();
+	var dt = new Date(todayMS());
 	dt.setDate(dt.getDate() + d);
 	return Sl.Format.formatDate(dt, Sl.Formatter.DurationElapsed);
 }

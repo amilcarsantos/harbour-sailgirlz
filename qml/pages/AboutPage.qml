@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2014 Amilcar Santos
+  Copyright (C) 2016 Amilcar Santos
   Contact: Amilcar Santos <amilcar.santos@gmail.com>
   All rights reserved.
 
@@ -35,7 +35,7 @@ Page {
 
 	allowedOrientations: Orientation.Portrait + Orientation.PortraitInverted
 
-	property string appurl: "https://github.com/amilcarsantos/harbour-girlz"
+	property string appurl: "https://github.com/amilcarsantos/harbour-sailgirlz"
 
 	Flickable {
 		id: flick
@@ -78,7 +78,7 @@ Page {
 
 			Label {
 				font.pixelSize: Theme.fontSizeMedium
-				text: "SailGirlz v0.1"
+				text: "SailGirlz v0.2"
 				anchors.horizontalCenter: parent.horizontalCenter
 			}
 			Label {

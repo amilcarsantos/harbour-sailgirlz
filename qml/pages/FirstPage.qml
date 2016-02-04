@@ -1,20 +1,20 @@
 /*
-  Copyright (C) 2013 Jolla Ltd.
-  Contact: Thomas Perl <thomas.perl@jollamobile.com>
+  Copyright (C) 2016 Amilcar Santos
+  Contact: Amilcar Santos <amilcar.santos@gmail.com>
   All rights reserved.
 
   You may use this file under the terms of BSD license as follows:
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-	* Redistributions of source code must retain the above copyright
-	  notice, this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright
-	  notice, this list of conditions and the following disclaimer in the
-	  documentation and/or other materials provided with the distribution.
-	* Neither the name of the Jolla Ltd nor the
-	  names of its contributors may be used to endorse or promote products
-	  derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the Amilcar Santos nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -41,12 +41,10 @@ Page {
 	property bool updateAfterManage: false
 	property var selectGirlIndex
 
-	// To enable PullDownMenu, place our content in a SilicaFlickable
 	SilicaFlickable {
 		id: mainView
 		anchors.fill: parent
 
-		// PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
 		PullDownMenu {
 			MenuItem {
 				text: qsTr("About")
@@ -94,8 +92,28 @@ Page {
 				height: Theme.paddingMedium
 			}
 			Item {
+				property int cellWidth: width / 7
+				property int cellHeight: cellWidth
+
+				id: dateContainer
 				width: parent.width
-				height: datePicker.height
+				height: datePicker.height + weekDaysSimulator.height
+				Row {
+					id: weekDaysSimulator
+					height: Theme.paddingMedium + Theme.iconSizeExtraSmall + Theme.paddingSmall
+					Repeater {
+						model: 7
+						delegate: Label {
+							// 2 Jan 2000 was a Sunday
+							text: Qt.formatDateTime(new Date(2000, 0, 3 + index, 12), "ddd")
+							width: dateContainer.cellWidth
+							font.pixelSize: Theme.fontSizeExtraSmall
+							color: Theme.highlightColor
+							opacity: 0.5
+							horizontalAlignment: Text.AlignHCenter
+						}
+					}
+				}
 				Image {
 					anchors.fill: parent
 					source: "image://theme/graphic-gradient-edge"
@@ -104,20 +122,21 @@ Page {
 				}
 				DatePicker {
 					id: datePicker
-					daysVisible: true
+					//daysVisible: true
+					anchors.top: weekDaysSimulator.bottom
 
 					delegate: Component {
 						Rectangle {
 							id: rect
-							width: datePicker.cellWidth
-							height: datePicker.cellHeight
+							width: dateContainer.cellWidth
+							height: dateContainer.cellHeight
 							radius: 2
 							color: rectColor(model.day, model.month, model.year)
 
 							function rectColor(day, month, year) {
 								if (dateColumn.pickerGirlInfo) {
 									var pgi = dateColumn.pickerGirlInfo;
-									var d = Algo.daysInCycle(pgi.cycle, pgi.day1ms, new Date(Date.UTC(year, month - 1, day)));
+									var d = Algo.daysInCycle(pgi.cycle, pgi.day1ms, Date.UTC(year, month - 1, day));
 									var color = pgi.colorArr[d];
 									//console.log(d, color, day, month, year)
 									if (color) {
@@ -140,6 +159,16 @@ Page {
 								color: Theme.primaryColor
 							}
 						}
+					}
+				}
+				Component.onCompleted: {
+					if (Object(datePicker).hasOwnProperty('daysVisible')) {
+						// SfOS 2
+						weekDaysSimulator.height = 0;
+						weekDaysSimulator.visible = false;
+						datePicker.daysVisible = true;
+						dateContainer.cellWidth = datePicker.cellWidth;
+						dateContainer.cellHeight = datePicker.cellHeight;
 					}
 				}
 			}
@@ -259,17 +288,17 @@ Page {
 
 		if (g.pms > Algo.PMS_OFF) {
 			Ql.ng().loop(g.cycle - g.pms, g.pms, function(i, p) {
-				colors[i] = '#5d00e5';
-				opacitys[i] = (p / g.pms) * 0.6;
+				colors[i] = Algo.PMS_COLOR;
+				opacitys[i] = (p / g.pms) * 0.5 + 0.1;
 			});
 		}
 
 		Ql.ng().loop(0, Algo.MN_DAYS, function(i, p) {
-			colors[i] = '#e60003';
+			colors[i] = Algo.MN_COLOR;
 			opacitys[i] = (Algo.MN_DAYS + 1 - p) / Algo.MN_DAYS * 0.6 + 0.2;
 		});
 		Ql.ng().loop(g.cycle - Algo.OV_DAYS_BEFORE - Algo.OV_DAYS_SPAN, Algo.OV_DAYS, function(i, p) {
-			colors[i] = '#28a928';
+			colors[i] = Algo.OV_COLOR;
 			var o = 0.75;
 			if (p < Algo.OV_DAYS_SPAN) {
 				o = p / Algo.OV_DAYS_SPAN;
@@ -308,10 +337,10 @@ Page {
 		Persistence.initialize();
 		Persistence.populateGirls(girlsModel);
 
-		var curDay = new Date();
-		curDay.setUTCHours(0, 0, 0, 0);
+		var curDayMS = Algo.todayMS();
+
 		Ql.on(girlsModel).each(function(g, i) {
-			var _daysInCycle = Algo.daysInCycle(g.cycle, g.day1ms, curDay);
+			var _daysInCycle = Algo.daysInCycle(g.cycle, g.day1ms, curDayMS);
 			var ov = Algo.nextOvDays(_daysInCycle, g.cycle);
 			var mn = Algo.nextMnDays(_daysInCycle, g.cycle);
 			var today = Algo.formatDays(0);

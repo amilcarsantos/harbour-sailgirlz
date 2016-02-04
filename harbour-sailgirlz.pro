@@ -25,6 +25,7 @@ OTHER_FILES += qml/harbour-sailgirlz.qml \
     qml/pages/Qlecti.js \
     qml/pages/Persistence.js \
     qml/pages/Algo.js \
+    qml/pages/controls/ValueButtonEx.qml \
     rpm/harbour-sailgirlz.changes \
     rpm/harbour-sailgirlz.spec \
     rpm/harbour-sailgirlz.yaml \

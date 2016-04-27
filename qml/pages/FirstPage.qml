@@ -7,14 +7,14 @@
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Amilcar Santos nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+	* Redistributions of source code must retain the above copyright
+	  notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright
+	  notice, this list of conditions and the following disclaimer in the
+	  documentation and/or other materials provided with the distribution.
+	* Neither the name of the Amilcar Santos nor the
+	  names of its contributors may be used to endorse or promote products
+	  derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -67,6 +67,23 @@ Page {
 			MenuItem {
 				text: qsTr("Go to today")
 				onClicked: datePicker.date = new Date();
+			}
+			MenuItem {
+				text: qsTr("Edit day note")
+				visible: girlsModel.count > 0
+				onClicked: {
+					var _girlInfo = girlsModel.get(girlView.currentIndex);
+					var _noteInfo = Persistence.note(_girlInfo.dbid, _girlInfo.dayInCycle - 1);
+					if (_noteInfo === '') {
+						_noteInfo = Algo.emptyNoteInfo(_girlInfo.dbid, _girlInfo.dayInCycle - 1);
+					}
+
+					var dialog = pageStack.push(Qt.resolvedUrl("EditNoteDlg.qml"),
+						{noteInfo: _noteInfo})
+					dialog.accepted.connect(function() {
+						girlsModel.setProperty(girlView.currentIndex, "noteTitle", dialog.noteInfo.title);
+					});
+				}
 			}
 		}
 
@@ -145,6 +162,17 @@ Page {
 								}
 								return 'transparent';
 							}
+							function rectIcon(day, month, year) {
+								if (dateColumn.pickerGirlInfo) {
+									var pgi = dateColumn.pickerGirlInfo;
+									var d = Algo.daysInCycle(pgi.cycle, pgi.day1ms, Date.UTC(year, month - 1, day));
+									var icon = pgi.iconArr[d];
+									if (icon === 0) {
+										return 'image://theme/icon-s-alarm'
+									}
+								}
+								return '';
+							}
 
 							Label {
 								property bool _today: {
@@ -158,6 +186,12 @@ Page {
 								font.bold: _today
 								color: Theme.primaryColor
 							}
+							/*TBD Image {
+								anchors.right: parent.right
+								anchors.top: parent.top
+								source: rectIcon(model.day, model.month, model.year)
+								scale: 0.75
+							}*/
 						}
 					}
 				}
@@ -202,8 +236,9 @@ Page {
 
 					Column {
 						id: labels
-						//x: Theme.paddingMedium
+						property bool hasNote: !!model.noteTitle
 						width: parent.width
+						spacing: hasNote ? -Theme.paddingSmall : -1
 						Label {
 							id: name
 							width: parent.width
@@ -220,7 +255,6 @@ Page {
 						DetailItem {
 							id: dayincycle
 							label: qsTr("Day in cycle")
-							//value: girlsModel.get(model.index).dayInCycle
 							value: model.dayInCycle
 						}
 						DetailItem {
@@ -232,6 +266,13 @@ Page {
 							id: nextMn
 							label: qsTr("Next menstruation")
 							value: model.nextMn
+						}
+						DetailItem {
+							id: note
+							label: qsTr("Note title")
+							rightMargin: Theme.paddingSmall
+							visible: labels.hasNote
+							value: model.noteTitle
 						}
 					}
 				}
@@ -283,8 +324,10 @@ Page {
 	function fillGirlInfo(g) {
 		var colors = [];
 		var opacitys = [];
+		var icons = [];
 		colors[g.cycle] = undefined;
 		opacitys[g.cycle] = undefined;
+		icons[g.cycle] = undefined;
 
 		if (g.pms > Algo.PMS_OFF) {
 			Ql.ng().loop(g.cycle - g.pms, g.pms, function(i, p) {
@@ -313,9 +356,12 @@ Page {
 			coverColor = Theme.rgba(colors[g.dayInCycle - 1], opacitys[g.dayInCycle - 1]);
 		}
 
+		//TBD Persistence.noteIcons(icons, g.dbid);
+		//console.log(icons);
 		dateColumn.pickerGirlInfo = {
 			colorArr: colors,
 			opacityArr: opacitys,
+			iconArr: icons,
 			cycle: g.cycle,
 			day1ms: g.day1ms
 		}
@@ -350,6 +396,7 @@ Page {
 			girlsModel.setProperty(i, "coverOv", ov === 0? today : String(ov));
 			girlsModel.setProperty(i, "nextMn", Algo.formatDays(mn));
 			girlsModel.setProperty(i, "coverMn", mn === 0? today : String(mn));
+			girlsModel.setProperty(i, "noteTitle", Persistence.noteTitle(g.dbid, _daysInCycle));
 		}).first(function(girl) {
 			fillGirlInfo(girl);
 		});

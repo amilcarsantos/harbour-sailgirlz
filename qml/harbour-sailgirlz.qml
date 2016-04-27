@@ -1,6 +1,6 @@
 /*
-  Copyright (C) 2013 Jolla Ltd.
-  Contact: Thomas Perl <thomas.perl@jollamobile.com>
+  Copyright (C) 2016 Amilcar Santos
+  Contact: Amilcar Santos <amilcar.santos@gmail.com>
   All rights reserved.
 
   You may use this file under the terms of BSD license as follows:
@@ -12,7 +12,7 @@
 	* Redistributions in binary form must reproduce the above copyright
 	  notice, this list of conditions and the following disclaimer in the
 	  documentation and/or other materials provided with the distribution.
-	* Neither the name of the Jolla Ltd nor the
+	* Neither the name of the Amilcar Santos nor the
 	  names of its contributors may be used to endorse or promote products
 	  derived from this software without specific prior written permission.
 

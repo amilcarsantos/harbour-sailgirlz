@@ -64,3 +64,13 @@ function formatDays(d) {
 	dt.setDate(dt.getDate() + d);
 	return Sl.Format.formatDate(dt, Sl.Formatter.DurationElapsed);
 }
+
+function emptyNoteInfo(girlId, idx) {
+	return {
+		"title": "",
+		"note": "",
+		"dbid": 0,
+		"girlId": girlId,
+		"idx": idx
+	};
+}

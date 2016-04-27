@@ -74,6 +74,9 @@ var on = function(qlection) {
 		return [false, null, 0, ""].indexOf(word) < 0;
 	}
 	function _is(obj, typ) {
+		if (typ instanceof RegExp) {
+			return typ.exec(obj.toString());
+		}
 		return obj.toString().indexOf(typ) >= 0;
 	}
 
@@ -190,6 +193,23 @@ var on = function(qlection) {
 					return {
 						val: _val
 					}
+				}
+			}
+			return _q;
+		}
+		if (_is(qlection, /QQml.*ItemModel.*|ModelObject/)) {
+			_q = {
+				each: function(callback) {
+					var nhop = !qlection.hasOwnProperty;
+					for (var key in qlection) {
+						if (['objectName','model','hasModelChildren'].indexOf(key) < 0
+								&& (nhop || qlection.hasOwnProperty(key))) {
+							var v = qlection[key];
+							if (!(typeof v === 'function' || (nhop && v === undefined))
+								&& callback.call(_q, v, key) === false) return _q;
+						}
+					}
+					return _q;
 				}
 			}
 			return _q;
@@ -338,7 +358,7 @@ var on = function(qlection) {
 	_q = {
 		each: function(callback) {
 			for (var key in qlection) {
-				if (callback.call(_q, key, qlection[key]) === false) return _q;
+				if (callback.call(_q, qlection[key], key) === false) return _q;
 			}
 			return _q;
 		},
@@ -361,14 +381,17 @@ var on = function(qlection) {
 			}
 			return _q;
 		},
-		op: {
-			filter: function(filterCallback) {
+		op: function (stats) {
+			var __q = {
+				filter: function(filterCallback) {
 				// modifier...
 			  //  var _qlection = qlection.filter(_filterCallback(filterCallback));
 			 //   return on(_qlection);
 				throw "UNDER CONSTRUCTION";
-			},
-			ret: _q.ret
+				},
+				ret: _q.ret
+			}
+			return __q;
 		},
 		ret: function() {
 			return {

@@ -22,6 +22,8 @@ OTHER_FILES += qml/harbour-sailgirlz.qml \
     qml/pages/SecondPage.qml \
     qml/pages/EditGirlDlg.qml \
     qml/pages/AboutPage.qml \
+    qml/pages/NotesPage.qml \
+    qml/pages/EditNoteDlg.qml \
     qml/pages/Qlecti.js \
     qml/pages/Persistence.js \
     qml/pages/Algo.js \

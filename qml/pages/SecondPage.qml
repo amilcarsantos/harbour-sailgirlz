@@ -1,6 +1,6 @@
 /*
-  Copyright (C) 2013 Jolla Ltd.
-  Contact: Thomas Perl <thomas.perl@jollamobile.com>
+  Copyright (C) 2016 Amilcar Santos
+  Contact: Amilcar Santos <amilcar.santos@gmail.com>
   All rights reserved.
 
   You may use this file under the terms of BSD license as follows:
@@ -12,7 +12,7 @@
 	* Redistributions in binary form must reproduce the above copyright
 	  notice, this list of conditions and the following disclaimer in the
 	  documentation and/or other materials provided with the distribution.
-	* Neither the name of the Jolla Ltd nor the
+	* Neither the name of the Amilcar Santos nor the
 	  names of its contributors may be used to endorse or promote products
 	  derived from this software without specific prior written permission.
 
@@ -30,6 +30,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import "Qlecti.js" as Ql
 import "Algo.js" as Algo
 import "Persistence.js" as Persistence
 
@@ -54,6 +55,7 @@ Page {
 		g.nextMn = Algo.formatDays(mn);
 		g.coverMn = mn === 0? today : String(mn)
 		if (idx >= 0) {
+			g.noteTitle = Persistence.noteTitle(g.dbid, _daysInCycle);
 			girlsModel.set(idx, g)
 		} else {
 			girlsModel.append(g);
@@ -101,6 +103,23 @@ Page {
 
 			RemorseItem { id: remorse }
 
+			function propGirlInfo(idx) {
+				var _girlInfo = {};
+				Ql.on(page.girlsModel.get(index)).each(function(v, k){
+					//console.log(k,v);
+					_girlInfo[k] = v;
+				});
+				return {girlInfo: _girlInfo};
+			}
+
+			function manageNotes() {
+				var dialog = pageStack.push(Qt.resolvedUrl("NotesPage.qml"), propGirlInfo(index));
+				dialog.currentNoteChanged.connect(function(newTitle) {
+					console.log(index, newTitle);
+					girlsModel.setProperty(index, "noteTitle", newTitle);
+				});
+			}
+
 			function editGirl() {
 				var dialog = pageStack.push(Qt.resolvedUrl("EditGirlDlg.qml"),
 						{girlInfo: page.girlsModel.get(index)});
@@ -116,6 +135,7 @@ Page {
 				remorseAction(qsTr("Deleting"), function() {
 					page.girlsModel.remove(idx);
 					Persistence.removeGirl(dbid);
+					Persistence.removeGirlNotes(dbid);
 				});
 			}
 
@@ -124,6 +144,10 @@ Page {
 				ContextMenu {
 					id: itemInfo
 
+					MenuItem {
+						text: qsTr("Manage day notes")
+						onClicked: manageNotes()
+					}
 					MenuItem {
 						text: qsTr("Edit")
 						onClicked: editGirl()
